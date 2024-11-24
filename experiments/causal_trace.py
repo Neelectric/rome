@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import sys
 from collections import defaultdict
 
 import numpy
@@ -11,7 +12,8 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from dsets import KnownsDataset
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from dsets.knowns import KnownsDataset
 from rome.tok_dataset import (
     TokenizedDataset,
     dict_to_,
@@ -39,8 +41,9 @@ def main():
 
     aa(
         "--model_name",
-        default="gpt2-xl",
+        default="meta-llama/Llama-3.1-8B-Instruct",
         choices=[
+            "meta-llama/Llama-3.1-8B-Instruct",
             "gpt2-xl",
             "EleutherAI/gpt-j-6B",
             "EleutherAI/gpt-neox-20b",
@@ -96,7 +99,7 @@ def main():
             uniform_noise = True
             noise_level = float(noise_level[1:])
 
-    for knowledge in tqdm(knowns):
+    for knowledge in tqdm(knowns, dynamic_ncols=True):
         known_id = knowledge["known_id"]
         for kind in None, "mlp", "attn":
             kind_suffix = f"_{kind}" if kind else ""
@@ -504,7 +507,7 @@ def layername(model, num, kind=None):
         if kind == "embed":
             return "model.embed_tokens"
         if kind == "attn":
-            kind = "attention"
+            kind = "self_attn"
         return f'model.layers.{num}{"" if kind is None else "." + kind}'
 
     assert False, "unknown transformer structure"
