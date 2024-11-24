@@ -463,7 +463,10 @@ class ModelAndTokenizer:
         if model is None:
             assert model_name is not None
             model = AutoModelForCausalLM.from_pretrained(
-                model_name, low_cpu_mem_usage=low_cpu_mem_usage, torch_dtype=torch_dtype
+                model_name, 
+                # low_cpu_mem_usage=low_cpu_mem_usage, 
+                torch_dtype=torch_dtype,
+                device_map="auto",
             )
             nethook.set_requires_grad(False, model)
             model.eval().cuda()
@@ -474,6 +477,8 @@ class ModelAndTokenizer:
             for n, m in model.named_modules()
             if (re.match(r"^(transformer|gpt_neox)\.(h|layers)\.\d+$", n))
         ]
+        if "llama" in model_name:
+            self.layer_names = [n for n, m in model.named_modules() if (re.match(r"^(model)\.(layers)\.\d+$", n))]
         self.num_layers = len(self.layer_names)
 
     def __repr__(self):
@@ -495,6 +500,13 @@ def layername(model, num, kind=None):
         if kind == "attn":
             kind = "attention"
         return f'gpt_neox.layers.{num}{"" if kind is None else "." + kind}'
+    if hasattr(model, "model"):
+        if kind == "embed":
+            return "model.embed_tokens"
+        if kind == "attn":
+            kind = "attention"
+        return f'model.layers.{num}{"" if kind is None else "." + kind}'
+
     assert False, "unknown transformer structure"
 
 
