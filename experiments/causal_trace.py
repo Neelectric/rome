@@ -41,8 +41,9 @@ def main():
 
     aa(
         "--model_name",
-        default="meta-llama/Llama-3.1-8B-Instruct",
+        default="meta-llama/Llama-3.1-8B",
         choices=[
+            "meta-llama/Llama-3.1-8B",
             "meta-llama/Llama-3.1-8B-Instruct",
             "gpt2-xl",
             "EleutherAI/gpt-j-6B",
