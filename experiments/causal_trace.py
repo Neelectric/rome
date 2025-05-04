@@ -24,10 +24,11 @@ from util import nethook
 from util.globals import DATA_DIR
 from util.runningstats import Covariance, tally
 
-device = "cuda:7"
+
 
 
 def main():
+    globaldevice = "cuda:7"
     parser = argparse.ArgumentParser(description="Causal Tracing")
 
     def aa(*args, **kwargs):
@@ -60,6 +61,9 @@ def main():
     aa("--output_dir", default="results/{model_name}/causal_trace")
     aa("--noise_level", default="s3", type=parse_noise_rule)
     aa("--replace", default=0, type=int)
+    aa("--worker_id", default=0, type=int, help="Worker ID (0-7)")
+    aa("--num_workers", default=8, type=int, help="Total number of workers")
+
     args = parser.parse_args()
 
     modeldir = f'r{args.replace}_{args.model_name.replace("/", "_")}'
@@ -73,7 +77,7 @@ def main():
     # Half precision to let the 20b model fit.
     torch_dtype = torch.float16 if "20b" in args.model_name else None
 
-    mt = ModelAndTokenizer(args.model_name, torch_dtype=torch_dtype)
+    mt = ModelAndTokenizer(args.model_name, torch_dtype=torch_dtype, device=f"cuda:{args.worker_id}")
 
     if args.fact_file is None:
         knowns = KnownsDataset(DATA_DIR)
@@ -199,7 +203,7 @@ def trace_with_patch(
                 b, e = tokens_to_mix
                 noise_data = noise_fn(
                     torch.from_numpy(prng(x.shape[0] - 1, e - b, x.shape[2]))
-                ).to(device)
+                ).to(x.device)
                 if replace:
                     x[1:, b:e] = noise_data
                 else:
@@ -271,7 +275,7 @@ def trace_with_repatch(
                 b, e = tokens_to_mix
                 x[1:, b:e] += noise * torch.from_numpy(
                     prng(x.shape[0] - 1, e - b, x.shape[2])
-                ).to(device)
+                ).to(x.device)
             return x
         if first_pass or (layer not in patch_spec and layer not in unpatch_spec):
             return x
@@ -463,6 +467,7 @@ class ModelAndTokenizer:
         tokenizer=None,
         low_cpu_mem_usage=False,
         torch_dtype=None,
+        device="cuda"
     ):
         if tokenizer is None:
             assert model_name is not None
@@ -609,7 +614,7 @@ def plot_all_flow(mt, prompt, subject=None):
 
 
 # Utilities for dealing with tokens
-def make_inputs(tokenizer, prompts):
+def make_inputs(tokenizer, prompts, device):
     token_lists = [tokenizer.encode(p) for p in prompts]
     maxlen = max(len(t) for t in token_lists)
     if "[PAD]" in tokenizer.all_special_tokens:
@@ -649,7 +654,7 @@ def find_token_range(tokenizer, token_array, substring):
 
 
 def predict_token(mt, prompts, return_p=False):
-    inp = make_inputs(mt.tokenizer, prompts)
+    inp = make_inputs(mt.tokenizer, prompts, device=mt.model.device)
     preds, p = predict_from_input(mt.model, inp)
     result = [mt.tokenizer.decode(c) for c in preds]
     if return_p:
@@ -667,7 +672,7 @@ def predict_from_input(model, inp):
 def collect_embedding_std(mt, subjects):
     alldata = []
     for s in subjects:
-        inp = make_inputs(mt.tokenizer, [s])
+        inp = make_inputs(mt.tokenizer, [s], mt.model.device)
         with nethook.Trace(mt.model, layername(mt.model, 0, "embed")) as t:
             mt.model(**inp)
             alldata.append(t.output[0])
