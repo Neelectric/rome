@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import argparse
 import json
 import os
@@ -42,11 +46,12 @@ def main():
         default="gpt2-xl",
         choices=[
             "gpt2-xl",
-            "EleutherAI/gpt-j-6B",
+            "EleutherAI/gpt-j-6b",
             "EleutherAI/gpt-neox-20b",
             "gpt2-large",
             "gpt2-medium",
             "gpt2",
+            "OLMo-2-1124-7B-Instruct",
         ],
     )
     aa("--fact_file", default=None)
