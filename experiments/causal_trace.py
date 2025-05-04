@@ -43,7 +43,7 @@ def main():
 
     aa(
         "--model_name",
-        default="gpt2-xl",
+        default="allenai/OLMo-2-1124-7B-Instruct",
         choices=[
             "gpt2-xl",
             "EleutherAI/gpt-j-6b",
@@ -51,7 +51,7 @@ def main():
             "gpt2-large",
             "gpt2-medium",
             "gpt2",
-            "OLMo-2-1124-7B-Instruct",
+            "allenai/OLMo-2-1124-7B-Instruct",
         ],
     )
     aa("--fact_file", default=None)
