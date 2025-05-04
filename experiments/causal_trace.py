@@ -62,7 +62,7 @@ def main():
     aa("--noise_level", default="s3", type=parse_noise_rule)
     aa("--replace", default=0, type=int)
     aa("--worker_id", default=0, type=int, help="Worker ID (0-7)")
-    aa("--num_workers", default=8, type=int, help="Total number of workers")
+    aa("--num_workers", default=1, type=int, help="Total number of workers")
 
     args = parser.parse_args()
 
@@ -107,7 +107,10 @@ def main():
             uniform_noise = True
             noise_level = float(noise_level[1:])
 
-    for knowledge in tqdm(knowns, dynamic_ncols=True):
+    for i, knowledge in enumerate(tqdm(knowns, dynamic_ncols=True)):
+        if args.num_workers == 8:
+            if i % args.num_workers != args.worker_id:
+                continue
         known_id = knowledge["known_id"]
         for kind in None, "mlp", "attn":
             kind_suffix = f"_{kind}" if kind else ""
