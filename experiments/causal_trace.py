@@ -694,7 +694,7 @@ def get_embedding_cov(mt):
 
     ds = get_ds()
     sample_size = 1000
-    batch_size = 5
+    batch_size = 20
     filename = None
     batch_tokens = 100
 
