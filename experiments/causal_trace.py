@@ -475,8 +475,9 @@ class ModelAndTokenizer:
                 torch_dtype=torch_dtype,
                 device_map=device,
             )
+            print(model.device)
             nethook.set_requires_grad(False, model)
-            model.eval().cuda()
+            model.eval()
         self.tokenizer = tokenizer
         self.model = model
         self.layer_names = [
