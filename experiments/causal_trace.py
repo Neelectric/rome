@@ -471,7 +471,7 @@ class ModelAndTokenizer:
                 model_name, 
                 # low_cpu_mem_usage=low_cpu_mem_usage, 
                 torch_dtype=torch_dtype,
-                device_map="cuda:0",
+                device_map="cuda:7",
             )
             nethook.set_requires_grad(False, model)
             model.eval().cuda()
