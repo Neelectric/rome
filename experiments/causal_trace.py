@@ -41,8 +41,9 @@ def main():
 
     aa(
         "--model_name",
-        default="meta-llama/Llama-3.1-8B",
+        default="allenai/OLMo-2-1124-7B-Instruct",
         choices=[
+            "allenai/OLMo-2-1124-7B-Instruct",
             "meta-llama/Llama-3.1-8B",
             "meta-llama/Llama-3.1-8B-Instruct",
             "gpt2-xl",
@@ -470,7 +471,7 @@ class ModelAndTokenizer:
                 model_name, 
                 # low_cpu_mem_usage=low_cpu_mem_usage, 
                 torch_dtype=torch_dtype,
-                device_map="auto",
+                device_map="cuda:0",
             )
             nethook.set_requires_grad(False, model)
             model.eval().cuda()
@@ -481,7 +482,7 @@ class ModelAndTokenizer:
             for n, m in model.named_modules()
             if (re.match(r"^(transformer|gpt_neox)\.(h|layers)\.\d+$", n))
         ]
-        if "llama" in model_name:
+        if "llama" or "olmo" in model_name.lower():
             self.layer_names = [n for n, m in model.named_modules() if (re.match(r"^(model)\.(layers)\.\d+$", n))]
         self.num_layers = len(self.layer_names)
 
