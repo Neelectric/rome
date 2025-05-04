@@ -24,6 +24,8 @@ from util import nethook
 from util.globals import DATA_DIR
 from util.runningstats import Covariance, tally
 
+device = "cuda:7"
+
 
 def main():
     parser = argparse.ArgumentParser(description="Causal Tracing")
@@ -197,7 +199,7 @@ def trace_with_patch(
                 b, e = tokens_to_mix
                 noise_data = noise_fn(
                     torch.from_numpy(prng(x.shape[0] - 1, e - b, x.shape[2]))
-                ).to(x.device)
+                ).to(device)
                 if replace:
                     x[1:, b:e] = noise_data
                 else:
@@ -269,7 +271,7 @@ def trace_with_repatch(
                 b, e = tokens_to_mix
                 x[1:, b:e] += noise * torch.from_numpy(
                     prng(x.shape[0] - 1, e - b, x.shape[2])
-                ).to(x.device)
+                ).to(device)
             return x
         if first_pass or (layer not in patch_spec and layer not in unpatch_spec):
             return x
@@ -471,7 +473,7 @@ class ModelAndTokenizer:
                 model_name, 
                 # low_cpu_mem_usage=low_cpu_mem_usage, 
                 torch_dtype=torch_dtype,
-                device_map="cuda:7",
+                device_map=device,
             )
             nethook.set_requires_grad(False, model)
             model.eval().cuda()
@@ -606,7 +608,7 @@ def plot_all_flow(mt, prompt, subject=None):
 
 
 # Utilities for dealing with tokens
-def make_inputs(tokenizer, prompts, device="cuda"):
+def make_inputs(tokenizer, prompts):
     token_lists = [tokenizer.encode(p) for p in prompts]
     maxlen = max(len(t) for t in token_lists)
     if "[PAD]" in tokenizer.all_special_tokens:
