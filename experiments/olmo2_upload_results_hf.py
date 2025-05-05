@@ -1,8 +1,8 @@
 # Python code to upload
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, login
 import os
 
-# Initialize the API
+login()
 api = HfApi()
 
 # Login (you'll need to generate a token from your HF account settings)
