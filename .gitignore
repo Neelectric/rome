@@ -2,7 +2,7 @@
 results/*
 # !results/ns3_r0_allenai_OLMo-2-1124-7B-Instruct/
 !results/allenai_OLMo-2-1124-7B-Instruct/causal_trace/summary_pdfs/
-!/home/rome/results/allenai_OLMo-2-1124-7B-Instruct/causal_trace/summary_pdfs
+!results/allenai_OLMo-2-1124-7B-Instruct/causal_trace/summary_pdfs/
 data
 *_tmp_*_.json
 *_kmeng01g1gn*
